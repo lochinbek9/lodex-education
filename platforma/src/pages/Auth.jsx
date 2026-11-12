@@ -30,7 +30,8 @@ function Field({ label, error, ...props }) {
   );
 }
 
-const safeNext = n => (n && n.startsWith('/') && !n.startsWith('//') ? n : '/kabinet');
+// Kirishdan keyin faqat sayt ichidagi sahifaga qaytariladi: "//" va "\" bilan tashqi saytga yo'naltirish taqiqlanadi
+const safeNext = n => (n && /^\/(?![\/\\])/.test(n) && !/[\\\s]/.test(n) ? n : '/kabinet');
 
 export function Login() {
   useTitle('Kirish');
