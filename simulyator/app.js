@@ -14,7 +14,17 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* jim */ } },
 };
 
-let field = FIELDS.find(f => f.id === store.get(FIELD_KEY)) || FIELDS.find(f => f.id === 'oval');
+// URL parametrlari: ?field=maze — maydonni tanlaydi; &embed=1 — platforma darsi ichida (iframe) ishlash
+const params = new URLSearchParams(location.search);
+const EMBED = params.get('embed') === '1';
+const fieldFromUrl = FIELDS.find(f => f.id === params.get('field'));
+if (EMBED) document.body.classList.add('embed');
+let field = fieldFromUrl || FIELDS.find(f => f.id === store.get(FIELD_KEY)) || FIELDS.find(f => f.id === 'oval');
+
+// Dars ichida namuna dastur (ko'pincha topshiriq yechimi) berilmaydi: dastur bo'sh boshlanadi
+const STARTER_BLOCKS = { blocks: { languageVersion: 0, blocks: [{ type: 'robot_start', x: 30, y: 30 }] } };
+const STARTER_PY = "# Topshiriqni bajaradigan dasturni shu yerga yozing.\nfrom robot import *\n\nrobot = Robot(left=Port.B, right=Port.C)\n";
+const startProgram = f => (EMBED && f.task ? STARTER_BLOCKS : f.example);
 
 // ---------- Blockly ----------
 const workspace = Blockly.inject('blockly', {
@@ -41,7 +51,7 @@ function loadState(state) {
 function loadProgramFor(f) {
   let state = null;
   try { state = JSON.parse(store.get(PROGRAM_KEY(f.id)) || 'null'); } catch (e) { /* buzilgan */ }
-  try { loadState(state || f.example); } catch (e) { loadState(f.example); }
+  try { loadState(state || startProgram(f)); } catch (e) { loadState(startProgram(f)); }
 }
 
 function saveProgram() {
@@ -88,7 +98,7 @@ function pythonFromExample(f) {
 }
 function loadPyFor(f) {
   pyLoading = true;
-  cm.setValue(store.get(PY_KEY(f.id)) ?? pythonFromExample(f));
+  cm.setValue(store.get(PY_KEY(f.id)) ?? (EMBED && f.task ? STARTER_PY : pythonFromExample(f)));
   cm.clearHistory();
   pyLoading = false;
   clearPyMarks();
@@ -252,6 +262,11 @@ function finish(ok, text) {
   task.done = true;
   setStatus(text, ok ? 'ok' : 'bad');
   stopProgram(ok ? 'done' : 'timeout');
+  // Platformaga natija: dars sahifasi (iframe ota-onasi) yoki simulyatorni ochgan oyna
+  const payload = { type: 'lodex-sim:result', field: field.id, ok, time: sim.time - task.start, text };
+  for (const w of [window.parent !== window ? window.parent : null, window.opener]) {
+    if (w) { try { w.postMessage(payload, location.origin); } catch (e) { /* boshqa domen */ } }
+  }
 }
 
 sim.listeners.push(() => {

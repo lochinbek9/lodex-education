@@ -120,3 +120,14 @@ body {
   .editor { border-right: 0; border-bottom: 1px solid var(--line); }
   .panels { grid-template-columns: 1fr; }
 }
+
+/* Platforma darsi ichida (iframe): maydon qat'iy, namuna yechim berilmaydi */
+body.embed .brand, body.embed #fieldSelect, body.embed .fieldpick label, body.embed #btnExample { display: none; }
+body.embed .fieldpick { margin-left: 0; }
+body.embed .top { padding: 6px 10px; }
+@media (min-width: 640px) and (max-width: 900px) {
+  body.embed .layout { grid-template-columns: minmax(280px, 46%) 1fr; grid-template-rows: none; }
+  body.embed .editor { border-right: 1px solid var(--line); border-bottom: 0; }
+  body.embed .panels { grid-template-columns: 1fr 1fr; }
+  body.embed .panels .screen { display: none; }
+}

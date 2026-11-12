@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+  body { @apply bg-white text-ink font-sans; }
+  :focus-visible { @apply outline-none ring-2 ring-brand-500 ring-offset-2; }
+}
+
+@layer components {
+  .container-lx { @apply mx-auto w-full max-w-6xl px-4 sm:px-6; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700; }
+  .btn-secondary { @apply btn border border-slate-200 bg-white text-ink hover:border-slate-300 hover:bg-slate-50; }
+  .btn-ghost { @apply btn text-ink-soft hover:bg-slate-100; }
+  .btn-lg { @apply px-6 py-3 text-base; }
+  .card { @apply rounded-2xl border border-slate-200 bg-white shadow-card; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .input { @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20; }
+  .label { @apply mb-1.5 block text-sm font-medium text-ink-soft; }
+  .link { @apply font-medium text-brand-700 hover:text-brand-800 hover:underline; }
+}
+
+/* Dars matni (markdown) */
+.prose-lx { @apply text-[15.5px] leading-7 text-ink-soft; }
+.prose-lx > * + * { @apply mt-4; }
+.prose-lx h2 { @apply mt-8 text-xl font-bold text-ink; }
+.prose-lx h3 { @apply mt-6 text-lg font-semibold text-ink; }
+.prose-lx strong { @apply font-semibold text-ink; }
+.prose-lx ul { @apply list-disc space-y-1.5 pl-6; }
+.prose-lx ol { @apply list-decimal space-y-1.5 pl-6; }
+.prose-lx a { @apply link; }
+.prose-lx blockquote { @apply rounded-xl border-l-4 border-brand-500 bg-brand-50 px-4 py-3 text-ink-soft; }
+.prose-lx blockquote p { @apply m-0; }
+.prose-lx code { @apply rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[13.5px] text-ink; }
+.prose-lx pre { @apply overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13.5px] leading-6 text-slate-100; }
+.prose-lx pre code { @apply bg-transparent p-0 text-inherit; }
+.prose-lx table { @apply w-full overflow-hidden rounded-xl border border-slate-200 text-sm; }
+.prose-lx th { @apply bg-slate-50 px-3 py-2 text-left font-semibold text-ink; }
+.prose-lx td { @apply border-t border-slate-200 px-3 py-2; }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}
