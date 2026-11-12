@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot simulyatori — prototip</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/blockly@10.4.3/blockly_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/javascript_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/python_compressed.js"></script>
+  <script src="https://unpkg.com/blockly@10.4.3/msg/en.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "rapier": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.12.0/rapier.es.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">Robot simulyatori <span class="tag">prototip</span></div>
+    <div class="fieldpick">
+      <label for="fieldSelect">Maydon:</label>
+      <select id="fieldSelect"></select>
+      <button id="btnExample" class="btn" title="Shu maydon uchun namuna dasturni yuklash">Namuna dastur</button>
+    </div>
+    <div class="controls">
+      <label class="toggle" title="Har bir blokdan oldin to'xtash">
+        <input type="checkbox" id="stepMode"> Qadam-baqadam
+      </label>
+      <button id="btnStep" class="btn" title="Keyingi blokni bajarish" disabled>⏭ Keyingi qadam</button>
+      <span id="runSource" class="runsrc" title="Qaysi dastur ishga tushiriladi">bloklar</span>
+      <button id="btnRun" class="btn primary" title="Dasturni ishga tushirish">▶ Ishga tushirish</button>
+      <button id="btnStop" class="btn" title="Dasturni to'xtatish" disabled>■ To'xtatish</button>
+      <button id="btnReset" class="btn" title="Robotni boshlang'ich joyga qaytarish">↺ Qayta boshlash</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="editor mode-blocks" id="editor">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-mode="blocks" role="tab">Bloklar</button>
+        <button class="tab" data-mode="split" role="tab">Ikkalasi</button>
+        <button class="tab" data-mode="python" role="tab" title="Bloklardan yaratilgan Python (faqat o'qish)">Python (ko'rish)</button>
+        <button class="tab pyedit-tab" data-mode="pyedit" role="tab" title="Python kodini o'zingiz yozing va ishga tushiring">✎ Python muharriri</button>
+        <button id="btnCopyPy" class="tab copy" title="Python kodini nusxalash">Nusxa olish</button>
+      </div>
+      <div class="editor-body">
+        <div id="blockly"></div>
+        <div id="pyview">
+          <div class="pynote">Python kodi bloklardan avtomatik yaratiladi va faqat o'qish uchun.</div>
+          <pre><code id="pycode" class="language-python"></code></pre>
+        </div>
+        <div id="pyedit">
+          <div class="pyedit-bar">
+            <button id="btnPyFromBlocks" class="mini" title="Joriy bloklardan yaratilgan kodni muharrirga qo'yish">Bloklardan olish</button>
+            <details class="pyhelp">
+              <summary>Buyruqlar</summary>
+              <pre>robot = Robot(left=Port.B, right=Port.C, gyro=Port.S2)
+robot.steer(rul, quvvat)       # rul −100…100, quvvat −100…100
+robot.tank(chap, ong)          # har motorga alohida quvvat
+robot.move_for(rul, quvvat, seconds=1)
+robot.turn(gradus)             # musbat — o'ngga
+robot.stop()
+wait(soniya)
+
+rang = ColorSensor(Port.S3)
+rang.reflection()              # 0…100
+rang.color() == Color.RED      # BLACK WHITE RED YELLOW GREEN BLUE
+masofa = DistanceSensor(Port.S4)
+masofa.distance()              # sm, hech narsa yo'q bo'lsa 255
+giro = GyroSensor(Port.S2)
+giro.angle(); giro.reset_angle()
+Motor(Port.B).angle(); Timer().time()
+print(...) yoki screen.print(...)  # robot ekraniga</pre>
+            </details>
+            <span id="pyStatus" class="pystatus"></span>
+          </div>
+          <div id="pyeditCm"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage">
+      <div class="viewport">
+        <div id="three"></div>
+        <div class="cam">
+          <button data-cam="top" class="chip">Ustdan</button>
+          <button data-cam="free" class="chip active">Erkin</button>
+          <button data-cam="follow" class="chip">Kuzatish</button>
+        </div>
+        <div id="loading" class="loading">Fizika yuklanmoqda…</div>
+        <div class="hint">Dastur ishlamayotganda robotni <b>W A S D</b> bilan boshqarish mumkin</div>
+      </div>
+
+      <div class="panels">
+        <div class="panel task">
+          <h3 id="tTitle">Topshiriq</h3>
+          <p id="tText"></p>
+          <div class="taskrow">
+            <span>Vaqt: <b id="tTime">0.0</b> s</span>
+            <span id="tProgWrap"><span id="tProgLabel">Nuqtalar</span>: <b id="tProg">0</b></span>
+          </div>
+          <div id="tStatus" class="status">Tayyor</div>
+        </div>
+
+        <div class="panel sensors">
+          <h3>Sensorlar va portlar</h3>
+          <table>
+            <tr><td class="port" data-port-of="color">3</td><td>Rang sensori — yorug'lik</td><td><b id="sRefl">–</b> %</td></tr>
+            <tr><td class="port" data-port-of="color">3</td><td>Rang sensori — rang</td><td><b id="sColor">–</b></td></tr>
+            <tr><td class="port" data-port-of="distance">4</td><td>Masofa sensori</td><td><b id="sDist">–</b> sm</td></tr>
+            <tr><td class="port" data-port-of="gyro">2</td><td>Giroskop</td><td><b id="sGyro">–</b>°</td></tr>
+            <tr><td class="port">B</td><td>Chap motor</td><td><b id="sMB">–</b>°</td></tr>
+            <tr><td class="port">C</td><td>O'ng motor</td><td><b id="sMC">–</b>°</td></tr>
+          </table>
+          <div class="wiring" title="Sensor qaysi portga ulanganini o'zgartirish">
+            <span class="wl">Ulanishlar:</span>
+            <label>rang <select data-sensor="color"></select></label>
+            <label>giroskop <select data-sensor="gyro"></select></label>
+            <label>masofa <select data-sensor="distance"></select></label>
+          </div>
+        </div>
+
+        <div class="panel screen">
+          <h3>Robot ekrani</h3>
+          <pre id="screen"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="blocks.js"></script>
+  <script src="python.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
