@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm --prefix platforma ci",
+  "buildCommand": "npm --prefix platforma run build",
+  "outputDirectory": "platforma/dist",
+  "rewrites": [
+    { "source": "/((?!simulyator/|qollanma/|assets/|favicon).*)", "destination": "/index.html" }
+  ]
+}

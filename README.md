@@ -18,4 +18,4 @@ Platforma dev rejimda va build'da simulyator hamda qo'llanmani o'z ichiga oladi:
 cd platforma && npm install && npm run build
 ```
 
-`platforma/dist/` papkasi istalgan statik hostingga joylanadi. Vercel uchun loyiha ildizi sifatida `platforma` tanlanadi (build: `npm run build`, chiqish: `dist`); SPA marshrutlari `vercel.json` da sozlangan.
+`platforma/dist/` papkasi istalgan statik hostingga joylanadi. Vercel uchun qo'shimcha sozlash kerak emas: repo ildizidagi `vercel.json` platformani o'rnatadi, build qiladi, `platforma/dist` ni beradi va SPA marshrutlarini sozlaydi (Vercel'da Root Directory bo'sh — repo ildizi — qoladi).
