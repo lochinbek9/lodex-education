@@ -22,6 +22,17 @@
         "8766"
       ],
       "port": 8766
+    },
+    {
+      "name": "platforma",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "platforma",
+        "run",
+        "dev"
+      ],
+      "port": 5173
     }
   ]
 }
