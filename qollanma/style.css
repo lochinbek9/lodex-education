@@ -248,3 +248,34 @@ code, .blk { font: 600 13.5px ui-monospace, Menlo, Consolas, monospace; backgrou
 .dbar .d-full { margin-left: auto; }
 @media (max-width: 720px) { .tcard { grid-template-columns: 1fr; } .tcard .te { text-align: left; } .dbar .d-full { display: none; } }
 @media print { .deck { display: none !important; } .think { break-inside: avoid; } details.think > p, details.qa > p { display: block; } }
+.pb-b { background: #74a9ff; }
+.pb-p { background: #c9a6ff; }
+.pb-s { background: #7fd8f0; }
+.pb-v { background: #ff9f6b; }
+
+/* Dars rasmi */
+.fig { margin: 0 0 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.fig img { display: block; width: 100%; max-height: 380px; object-fit: contain; background: #efece5; }
+.fig figcaption { padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: space-between; align-items: baseline; font-weight: 600; }
+.fig .credit { font-size: 12px; font-weight: 400; color: var(--muted); text-decoration: none; }
+.fig .credit:hover { text-decoration: underline; }
+.fig.s-fig { border: 0; background: none; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.fig.s-fig img { width: auto; max-width: 100%; max-height: 66vh; object-fit: contain; border-radius: 14px; background: none; }
+.fig.s-fig figcaption { justify-content: center; text-align: center; font-size: .95em; flex-direction: column; align-items: center; }
+.fig.s-fig .credit { font-size: .4em; }
+@media print { .fig img { max-height: 220px; } }
+.fig.s-fig.noimg figcaption { font-size: 1.5em; }
+.fig.s-fig.noimg .credit { display: none; }
+
+/* Mavzu kartochkasidagi rasm */
+.tcard.hasimg { grid-template-columns: 76px 1fr 240px; }
+.timg { margin: 0; align-self: start; }
+.timg img { display: block; width: 100%; height: 170px; object-fit: cover; border-radius: 10px; background: #efece5; }
+.timg .credit { display: block; font-size: 11px; color: var(--muted); text-decoration: none; margin-top: 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tcard.big.hasimg { grid-template-columns: 3.4em 1fr 38%; align-items: center; }
+.tcard.big.hasimg .te { font-size: 2.6em; align-self: start; }
+.tcard.big .timg { align-self: center; }
+.tcard.big .timg img { height: auto; max-height: 62vh; object-fit: contain; background: none; border-radius: 14px; }
+.tcard.big .timg .credit { font-size: .38em; text-align: center; }
+@media (max-width: 720px) { .tcard.hasimg { grid-template-columns: 1fr; } .tcard.big.hasimg { grid-template-columns: 1fr; } .tcard.big .timg img { max-height: 30vh; } }
+@media print { .timg img { height: 110px; } }

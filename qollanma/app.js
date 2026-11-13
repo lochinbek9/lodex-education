@@ -15,13 +15,20 @@
   const ytId = (s) => { const m = String(s).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/) || String(s).match(/^([\w-]{11})$/); return m ? m[1] : null; };
 
   const progHtml = (prog) => prog.map((c) => `<div class="chain"><div class="ct">${esc(c.t)}</div><div class="blocks">${c.b.map((x) => `<span class="pb pb-${x[0]}">${esc(x.slice(2))}</span>`).join("")}</div></div>`).join("");
-  const topicHtml = (t, big) => `<div class="tcard${big ? " big" : ""}"><div class="te">${t.e}</div><div><h3>${esc(t.h)}</h3><p>${rich(t.p)}</p>
-    ${t.q ? `<details class="think"><summary>🤔 O'ylab ko'r: ${esc(t.q)}</summary><p>${esc(t.a)}</p></details>` : ""}</div></div>`;
+  const topicHtml = (t, big) => `<div class="tcard${big ? " big" : ""}${t.img ? " hasimg" : ""}"><div class="te">${t.e}</div><div><h3>${esc(t.h)}</h3><p>${rich(t.p)}</p>
+    ${t.q ? `<details class="think"><summary>🤔 O'ylab ko'r: ${esc(t.q)}</summary><p>${esc(t.a)}</p></details>` : ""}</div>
+    ${t.img ? `<figure class="timg"><img src="${imgUrl(t.img, big ? 960 : 480)}" alt="" loading="lazy" onerror="var c=this.closest('.tcard');c.classList.remove('hasimg');this.closest('figure').remove()"><a class="credit" target="_blank" rel="noopener" href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(t.img.f)}">${esc(t.img.a)} · ${esc(t.img.lic)}</a></figure>` : ""}</div>`;
+
+  // Dars rasmi (Wikimedia Commons). Internet bo'lmasa yoki rasm ochilmasa, blok yashiriladi.
+  const imgUrl = (im, w) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(im.f) + "?width=" + w;
+  const figHtml = (im, cls) => `<figure class="fig ${cls || ""}"><img src="${imgUrl(im, 960)}" alt="${esc(im.c)}" loading="lazy" onerror="var f=this.closest('figure');if(f.classList.contains('s-fig')){f.classList.add('noimg');this.remove()}else f.remove()">
+    <figcaption><span>${esc(im.c)}</span> <a class="credit" target="_blank" rel="noopener" href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(im.f)}">Rasm: ${esc(im.a)} · ${esc(im.lic)} · Wikimedia Commons</a></figcaption></figure>`;
 
   // To'liq ekranli taqdimot: dars ma'lumotidan slaydlar yig'iladi
   function present(gid, l, m) {
     const S = [];
     S.push(`<div class="s-title"><div class="s-over">${esc(m.title)} · ${l.n}-dars</div><h1>${esc(l.t)}</h1></div>`);
+    if (l.img) S.push(figHtml(l.img, "s-fig"));
     S.push(`<h2>Bugun darsda</h2><ul class="s-list">${l.out.map((x) => `<li>${rich(x)}</li>`).join("")}</ul>`);
     (l.topic || []).forEach((t) => S.push(topicHtml(t, true)));
     S.push(`<h2>Bizga kerak bo'ladi</h2><ul class="s-list">${l.need.map((x) => `<li>${rich(x)}</li>`).join("")}</ul>`);
@@ -137,6 +144,7 @@
       <div class="tabs" role="tablist">${tabs.map((t, i) => `<button class="tab${i ? "" : " active"}" role="tab" data-tab="${t[0]}">${t[1]}</button>`).join("")}</div>
 
       <div class="pane active" data-pane="reja">
+        ${l.img ? figHtml(l.img) : ""}
         <div class="two">
           <div class="box"><h3>Dars oxirida o'quvchi</h3><ul>${l.out.map((x) => `<li>${rich(x)}</li>`).join("")}</ul></div>
           <div class="box"><h3>Kerakli jihozlar</h3><ul>${l.need.map((x) => `<li>${rich(x)}</li>`).join("")}</ul></div>
@@ -149,7 +157,7 @@
 
       <div class="pane" data-pane="amaliy">
         <div class="box"><h3>${esc(l.pt || "Qadam-baqadam bajarish")}</h3><ol class="steps">${l.steps.map((x) => `<li>${rich(x)}</li>`).join("")}</ol></div>
-        ${l.prog ? `<div class="box"><h3>Dastur sxemasi</h3><div class="prog">${progHtml(l.prog)}</div><p class="note" style="margin:12px 0 0">Ranglar ilovadagi bloklarga mos: sariq — boshqaruv, yashil — motor va chiroq, qizil — ekran va tovush, to'q sariq — datchikni kutish.</p></div>` : ""}
+        ${l.prog ? `<div class="box"><h3>Dastur sxemasi</h3><div class="prog">${progHtml(l.prog)}</div><p class="note" style="margin:12px 0 0">${esc(m.progNote || "Ranglar ilovadagi bloklarga mos: sariq — boshlash, to'q sariq — kutish va takrorlash, yashil — motor va chiroq, qizil — ekran va tovush.")}</p></div>` : ""}
         ${l.extra ? `<div class="box"><h3>⭐ Tez tugatganlar uchun</h3><ul>${l.extra.map((x) => `<li>${rich(x)}</li>`).join("")}</ul></div>` : ""}
       </div>
 
