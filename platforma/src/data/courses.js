@@ -1,3 +1,5 @@
+import RU from './courses.ru.js';
+
 // Kurslar mazmuni. Dars turlari:
 //   text  — markdown matn
 //   quiz  — test (o'tish bali: passPercent)
@@ -299,13 +301,31 @@ export const COURSES = [
   },
 ];
 
+// Tarjima: tuzilma (id, tur, javob indekslari, simulyator maydoni) shu fayldan, matnlar tarjima faylidan
+export function localizeCourse(course, lang) {
+  const o = lang === 'ru' ? RU[course.slug] : null;
+  if (!o) return course;
+  const mergeLesson = l => {
+    const tr = o.lessons?.[l.id];
+    if (!tr) return l;
+    const out = { ...l, ...tr };
+    if (l.questions && tr.questions) out.questions = l.questions.map((q, i) => ({ ...q, ...(tr.questions[i] || {}) }));
+    if (l.pairs && tr.pairs) out.pairs = l.pairs.map((p, i) => ({ ...p, ...(tr.pairs[i] || {}) }));
+    return out;
+  };
+  return {
+    ...course, ...o.course,
+    modules: course.modules.map(m => ({ ...m, ...(o.modules?.[m.id] || {}), lessons: m.lessons.map(mergeLesson) })),
+  };
+}
+
 export const courseLessons = course => course.modules.flatMap(m => m.lessons.map(l => ({ ...l, moduleId: m.id, moduleTitle: m.title })));
 export const findCourse = slug => COURSES.find(c => c.slug === slug) || null;
 export const courseMinutes = course => courseLessons(course).reduce((s, l) => s + (l.minutes || 0), 0);
 
 export const LESSON_TYPE = {
-  text: { label: 'Matn', icon: 'doc' },
-  quiz: { label: 'Test', icon: 'check' },
-  match: { label: 'Interaktiv', icon: 'puzzle' },
-  sim: { label: 'Simulyator', icon: 'robot' },
+  text: { icon: 'doc' },
+  quiz: { icon: 'check' },
+  match: { icon: 'puzzle' },
+  sim: { icon: 'robot' },
 };

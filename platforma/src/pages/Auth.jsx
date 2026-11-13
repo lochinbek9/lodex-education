@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../components/Icon.jsx';
 import { Logo, Spinner, useTitle } from '../components/ui.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../i18n/index.jsx';
 
 function AuthShell({ title, subtitle, children, footer }) {
   return (
@@ -33,8 +34,12 @@ function Field({ label, error, ...props }) {
 // Kirishdan keyin faqat sayt ichidagi sahifaga qaytariladi: "//" va "\" bilan tashqi saytga yo'naltirish taqiqlanadi
 const safeNext = n => (n && /^\/(?![\/\\])/.test(n) && !/[\\\s]/.test(n) ? n : '/kabinet');
 
+// Xato kodi -> tanlangan tildagi matn
+const errText = (t, ex) => { const m = t(`err.${ex.code || ex.message}`); return m.startsWith('err.') ? t('err.unknown') : m; };
+
 export function Login() {
-  useTitle('Kirish');
+  const { t } = useI18n();
+  useTitle(t('titles.login'));
   const { user, login } = useAuth();
   const nav = useNavigate();
   const [params] = useSearchParams();
@@ -48,26 +53,27 @@ export function Login() {
     e.preventDefault();
     setBusy(true); setErr(null);
     try { await login(form); nav(next, { replace: true }); }
-    catch (ex) { setErr({ field: ex.field, message: ex.message }); }
+    catch (ex) { setErr({ field: ex.field, message: errText(t, ex) }); }
     finally { setBusy(false); }
   };
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
   return (
-    <AuthShell title="Hisobingizga kiring" subtitle="O'qishni to'xtagan joyingizdan davom ettiring."
-      footer={<>Hisobingiz yo'qmi? <Link to={`/royxatdan-otish${params.get('next') ? `?next=${encodeURIComponent(next)}` : ''}`} className="link">Ro'yxatdan o'ting</Link></>}>
+    <AuthShell title={t('auth.loginTitle')} subtitle={t('auth.loginSub')}
+      footer={<>{t('auth.noAccount')} <Link to={`/royxatdan-otish${params.get('next') ? `?next=${encodeURIComponent(next)}` : ''}`} className="link">{t('auth.registerLink')}</Link></>}>
       <form onSubmit={submit} className="space-y-4" noValidate>
-        <Field id="email" label="Email" type="email" autoComplete="email" value={form.email} onChange={set('email')} error={err?.field === 'email' && err.message} required />
-        <Field id="password" label="Parol" type="password" autoComplete="current-password" value={form.password} onChange={set('password')} error={err?.field === 'password' && err.message} required />
+        <Field id="email" label={t('auth.email')} type="email" autoComplete="email" value={form.email} onChange={set('email')} error={err?.field === 'email' && err.message} required />
+        <Field id="password" label={t('auth.password')} type="password" autoComplete="current-password" value={form.password} onChange={set('password')} error={err?.field === 'password' && err.message} required />
         {err && !err.field && <p className="text-sm text-red-600">{err.message}</p>}
-        <button className="btn-primary w-full" disabled={busy}>{busy ? <Spinner className="h-4 w-4" /> : 'Kirish'}</button>
+        <button className="btn-primary w-full" disabled={busy}>{busy ? <Spinner className="h-4 w-4" /> : t('auth.loginBtn')}</button>
       </form>
     </AuthShell>
   );
 }
 
 export function Register() {
-  useTitle("Ro'yxatdan o'tish");
+  const { t } = useI18n();
+  useTitle(t('titles.register'));
   const { user, register } = useAuth();
   const nav = useNavigate();
   const [params] = useSearchParams();
@@ -81,29 +87,29 @@ export function Register() {
     e.preventDefault();
     setBusy(true); setErr(null);
     try { await register(form); nav(next, { replace: true }); }
-    catch (ex) { setErr({ field: ex.field, message: ex.message }); }
+    catch (ex) { setErr({ field: ex.field, message: errText(t, ex) }); }
     finally { setBusy(false); }
   };
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
   const fe = k => err?.field === k && err.message;
 
   return (
-    <AuthShell title="Bepul hisob yarating" subtitle="Bir daqiqa — va birinchi darsni boshlaysiz."
-      footer={<>Hisobingiz bormi? <Link to={`/kirish${params.get('next') ? `?next=${encodeURIComponent(next)}` : ''}`} className="link">Kiring</Link></>}>
+    <AuthShell title={t('auth.regTitle')} subtitle={t('auth.regSub')}
+      footer={<>{t('auth.haveAccount')} <Link to={`/kirish${params.get('next') ? `?next=${encodeURIComponent(next)}` : ''}`} className="link">{t('auth.loginLink')}</Link></>}>
       <form onSubmit={submit} className="space-y-4" noValidate>
         <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-          {[['student', "O'quvchi", 'user'], ['teacher', 'Mentor / o\'qituvchi', 'book']].map(([v, t, ic]) => (
+          {[['student', t('auth.student'), 'user'], ['teacher', t('auth.teacher'), 'book']].map(([v, label, ic]) => (
             <button type="button" key={v} onClick={() => setForm(f => ({ ...f, role: v }))}
               className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${form.role === v ? 'bg-white text-ink shadow-sm' : 'text-ink-mute hover:text-ink'}`}>
-              <Icon name={ic} className="h-4 w-4" />{t}
+              <Icon name={ic} className="h-4 w-4" />{label}
             </button>
           ))}
         </div>
-        <Field id="name" label="Ism va familiya" autoComplete="name" value={form.name} onChange={set('name')} error={fe('name')} required />
-        <Field id="email" label="Email" type="email" autoComplete="email" value={form.email} onChange={set('email')} error={fe('email')} required />
-        <Field id="password" label="Parol (kamida 8 belgi)" type="password" autoComplete="new-password" value={form.password} onChange={set('password')} error={fe('password')} required />
-        <button className="btn-primary w-full" disabled={busy}>{busy ? <Spinner className="h-4 w-4" /> : "Ro'yxatdan o'tish"}</button>
-        <p className="text-center text-xs text-ink-mute">Demo versiya: hisob ma'lumotlari faqat shu brauzerda saqlanadi.</p>
+        <Field id="name" label={t('auth.name')} autoComplete="name" value={form.name} onChange={set('name')} error={fe('name')} required />
+        <Field id="email" label={t('auth.email')} type="email" autoComplete="email" value={form.email} onChange={set('email')} error={fe('email')} required />
+        <Field id="password" label={t('auth.passwordHint')} type="password" autoComplete="new-password" value={form.password} onChange={set('password')} error={fe('password')} required />
+        <button className="btn-primary w-full" disabled={busy}>{busy ? <Spinner className="h-4 w-4" /> : t('auth.regBtn')}</button>
+        <p className="text-center text-xs text-ink-mute">{t('auth.demoNote')}</p>
       </form>
     </AuthShell>
   );

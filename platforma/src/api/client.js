@@ -28,9 +28,11 @@ export function remove(key) {
 // Tarmoq kechikishini taqlid qiladi: yuklanish holatlari haqiqiy ko'rinadi
 export const delay = (ms = 250) => new Promise(r => setTimeout(r, ms));
 
+// message — xato kodi (masalan 'emailTaken'); UI uni i18n orqali tanlangan tilga o'giradi: t(`err.${code}`)
 export class ApiError extends Error {
-  constructor(message, field) {
-    super(message);
+  constructor(code, field) {
+    super(code);
+    this.code = code;
     this.field = field;
   }
 }

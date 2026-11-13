@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Icon from '../components/Icon.jsx';
+import { useI18n } from '../i18n/index.jsx';
 
 // Juftini topish: chapdan element, o'ngdan unga mos javob tanlanadi
 function shuffle(arr, seed) {
@@ -12,6 +13,7 @@ function shuffle(arr, seed) {
 const COLORS = ['bg-sky-100 border-sky-400', 'bg-violet-100 border-violet-400', 'bg-amber-100 border-amber-400', 'bg-pink-100 border-pink-400', 'bg-teal-100 border-teal-400', 'bg-lime-100 border-lime-400'];
 
 export default function MatchLesson({ lesson, done, onComplete, busy }) {
+  const { t } = useI18n();
   const pairs = lesson.pairs;
   const right = useMemo(() => shuffle(pairs.map(p => p.right), pairs.length * 7 + 3), [pairs]);
   const [sel, setSel] = useState(null);          // tanlangan chap indeks
@@ -46,7 +48,7 @@ export default function MatchLesson({ lesson, done, onComplete, busy }) {
       <p className="text-ink-soft">{lesson.intro}</p>
       <div className="mt-6 grid gap-6 sm:grid-cols-2">
         <div className="space-y-2.5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-ink-mute">Blok</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-ink-mute">{t('match.left')}</div>
           {pairs.map((p, i) => {
             const linked = links[i] != null;
             const wrong = checked && linked && links[i] !== i;
@@ -62,7 +64,7 @@ export default function MatchLesson({ lesson, done, onComplete, busy }) {
           })}
         </div>
         <div className="space-y-2.5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-ink-mute">Vazifa</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-ink-mute">{t('match.right')}</div>
           {right.map(([text, ri]) => {
             const owner = rightOwner(ri);
             return (
@@ -79,17 +81,17 @@ export default function MatchLesson({ lesson, done, onComplete, busy }) {
 
       {checked && !allCorrect && (
         <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
-          <b>{correctCount}/{pairs.length}</b> ta juftlik to'g'ri. Qizil bilan belgilanganlarini o'zgartirib, qayta tekshiring.
+          {t('match.wrong', { c: correctCount, n: pairs.length })}
         </div>
       )}
       {(done || (checked && allCorrect)) && (
         <div className="mt-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
-          <Icon name="checkCircle" className="h-5 w-5" />Barcha juftliklar to'g'ri!
+          <Icon name="checkCircle" className="h-5 w-5" />{t('match.allRight')}
         </div>
       )}
       <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 pt-6">
-        <button className="btn-ghost" onClick={reset}>Boshidan</button>
-        <button className="btn-primary" disabled={!allLinked || busy || (checked && allCorrect)} onClick={check}>Tekshirish</button>
+        <button className="btn-ghost" onClick={reset}>{t('match.reset')}</button>
+        <button className="btn-primary" disabled={!allLinked || busy || (checked && allCorrect)} onClick={check}>{t('match.check')}</button>
       </div>
     </div>
   );

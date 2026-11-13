@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './index.css';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { I18nProvider } from './i18n/index.jsx';
 import Layout from './components/Layout.jsx';
 import { RequireAuth } from './components/ui.jsx';
 import Home from './pages/Home.jsx';
@@ -17,6 +18,7 @@ import NotFound from './pages/NotFound.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <I18nProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -35,5 +37,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </I18nProvider>
   </React.StrictMode>,
 );

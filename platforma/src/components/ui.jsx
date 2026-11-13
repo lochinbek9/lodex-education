@@ -3,11 +3,14 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 import { BRAND } from '../config.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import Icon from './Icon.jsx';
+import { useI18n } from '../i18n/index.jsx';
 
 export function useTitle(title) {
+  const { t } = useI18n();
+  const tagline = t('meta.tagline');
   useEffect(() => {
-    document.title = title ? `${title} — ${BRAND.name} ${BRAND.suffix}` : `${BRAND.name} ${BRAND.suffix} — ${BRAND.tagline}`;
-  }, [title]);
+    document.title = title ? `${title} — ${BRAND.name} ${BRAND.suffix}` : `${BRAND.name} ${BRAND.suffix} — ${tagline}`;
+  }, [title, tagline]);
 }
 
 export function Logo({ className = '' }) {
@@ -43,7 +46,8 @@ export function CourseIcon({ course, size = 'h-12 w-12' }) {
 }
 
 export function Spinner({ className = 'h-5 w-5' }) {
-  return <span className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`} aria-label="Yuklanmoqda" />;
+  const { t } = useI18n();
+  return <span className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`} aria-label={t('common.loading')} />;
 }
 
 export function EmptyState({ icon = 'sparkle', title, children, action }) {

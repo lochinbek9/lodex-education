@@ -2,13 +2,29 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BRAND, LINKS } from '../config.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { LANGS, useI18n } from '../i18n/index.jsx';
 import Icon from './Icon.jsx';
 import { Logo } from './ui.jsx';
 
 const navClass = ({ isActive }) =>
   `rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? 'text-brand-700 bg-brand-50' : 'text-ink-soft hover:text-ink hover:bg-slate-100'}`;
 
+function LangSwitch({ className = '' }) {
+  const { lang, setLang, t } = useI18n();
+  return (
+    <div className={`flex items-center rounded-lg bg-slate-100 p-0.5 text-xs font-semibold ${className}`} role="group" aria-label={t('nav.language')}>
+      {LANGS.map(l => (
+        <button key={l.code} onClick={() => setLang(l.code)} title={l.label} aria-pressed={lang === l.code}
+          className={`rounded-md px-2 py-1 transition ${lang === l.code ? 'bg-white text-ink shadow-sm' : 'text-ink-mute hover:text-ink'}`}>
+          {l.short}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function UserMenu({ user, onLogout }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -29,8 +45,8 @@ function UserMenu({ user, onLogout }) {
             <div className="truncate text-sm font-semibold">{user.name}</div>
             <div className="truncate text-xs text-ink-mute">{user.email}</div>
           </div>
-          <Link to="/kabinet" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-slate-50"><Icon name="user" className="h-4 w-4" />Shaxsiy kabinet</Link>
-          <button onClick={() => { setOpen(false); onLogout(); }} className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"><Icon name="logout" className="h-4 w-4" />Chiqish</button>
+          <Link to="/kabinet" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-slate-50"><Icon name="user" className="h-4 w-4" />{t('nav.cabinet')}</Link>
+          <button onClick={() => { setOpen(false); onLogout(); }} className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"><Icon name="logout" className="h-4 w-4" />{t('nav.logout')}</button>
         </div>
       )}
     </div>
@@ -39,43 +55,49 @@ function UserMenu({ user, onLogout }) {
 
 function Header() {
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const nav = useNavigate();
   const [mobile, setMobile] = useState(false);
   const loc = useLocation();
   useEffect(() => setMobile(false), [loc.pathname]);
   const doLogout = async () => { await logout(); nav('/'); };
 
+  const links = (
+    <>
+      <NavLink to="/kurslar" className={navClass}>{t('nav.courses')}</NavLink>
+      <a href={LINKS.simulator} className={navClass({ isActive: false })}>{t('nav.simulator')}</a>
+      <a href={LINKS.mentorGuide} className={navClass({ isActive: false })}>{t('nav.mentors')}</a>
+      <NavLink to="/biz-haqimizda" className={navClass}>{t('nav.about')}</NavLink>
+    </>
+  );
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
       <div className="container-lx flex h-16 items-center gap-2 sm:gap-4">
         <Logo />
-        <nav className="ml-6 hidden items-center gap-1 md:flex">
-          <NavLink to="/kurslar" className={navClass}>Kurslar</NavLink>
-          <a href={LINKS.simulator} className={navClass({ isActive: false })}>Simulyator</a>
-          <a href={LINKS.mentorGuide} className={navClass({ isActive: false })}>Mentorlar uchun</a>
-          <NavLink to="/biz-haqimizda" className={navClass}>Biz haqimizda</NavLink>
-        </nav>
+        <nav className="ml-6 hidden items-center gap-1 lg:flex">{links}</nav>
         <div className="ml-auto flex items-center gap-2">
+          <LangSwitch className="hidden sm:flex" />
           {user ? (
             <UserMenu user={user} onLogout={doLogout} />
           ) : (
             <>
-              <Link to="/kirish" className="btn-ghost hidden sm:inline-flex">Kirish</Link>
-              <Link to="/royxatdan-otish" className="btn-primary whitespace-nowrap px-3 sm:px-4"><span className="hidden sm:inline">Ro'yxatdan o'tish</span><span className="sm:hidden">Boshlash</span></Link>
+              <Link to="/kirish" className="btn-ghost hidden sm:inline-flex">{t('nav.login')}</Link>
+              <Link to="/royxatdan-otish" className="btn-primary whitespace-nowrap px-3 sm:px-4">
+                <span className="hidden sm:inline">{t('nav.signup')}</span><span className="sm:hidden">{t('nav.signupShort')}</span>
+              </Link>
             </>
           )}
-          <button className="btn-ghost px-2 md:hidden" onClick={() => setMobile(m => !m)} aria-label="Menyu">
+          <button className="btn-ghost px-2 lg:hidden" onClick={() => setMobile(m => !m)} aria-label={t('nav.menu')}>
             <Icon name={mobile ? 'close' : 'menu'} />
           </button>
         </div>
       </div>
       {mobile && (
-        <nav className="container-lx flex flex-col gap-1 border-t border-slate-100 pb-4 pt-2 md:hidden">
-          <NavLink to="/kurslar" className={navClass}>Kurslar</NavLink>
-          <a href={LINKS.simulator} className={navClass({ isActive: false })}>Simulyator</a>
-          <a href={LINKS.mentorGuide} className={navClass({ isActive: false })}>Mentorlar uchun</a>
-          <NavLink to="/biz-haqimizda" className={navClass}>Biz haqimizda</NavLink>
-          {!user && <NavLink to="/kirish" className={navClass}>Kirish</NavLink>}
+        <nav className="container-lx flex flex-col gap-1 border-t border-slate-100 pb-4 pt-2 lg:hidden">
+          {links}
+          {!user && <NavLink to="/kirish" className={navClass}>{t('nav.login')}</NavLink>}
+          <div className="flex items-center gap-3 px-3 pt-2 text-sm text-ink-mute">{t('nav.language')}: <LangSwitch /></div>
         </nav>
       )}
     </header>
@@ -83,28 +105,27 @@ function Header() {
 }
 
 function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="border-t border-slate-200 bg-slate-50">
       <div className="container-lx grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
           <Logo />
-          <p className="mt-3 max-w-sm text-sm text-ink-mute">
-            Robototexnika va dasturlashni o'zbek tilida, brauzerning o'zida o'rganish uchun onlayn platforma.
-          </p>
+          <p className="mt-3 max-w-sm text-sm text-ink-mute">{t('footer.about')}</p>
         </div>
         <div>
-          <h4 className="text-sm font-semibold">Platforma</h4>
+          <h4 className="text-sm font-semibold">{t('footer.platform')}</h4>
           <ul className="mt-3 space-y-2 text-sm text-ink-mute">
-            <li><Link to="/kurslar" className="hover:text-ink">Kurslar</Link></li>
-            <li><a href={LINKS.simulator} className="hover:text-ink">Robot simulyatori</a></li>
-            <li><a href={LINKS.mentorGuide} className="hover:text-ink">Mentorlar uchun qo'llanma</a></li>
+            <li><Link to="/kurslar" className="hover:text-ink">{t('footer.courses')}</Link></li>
+            <li><a href={LINKS.simulator} className="hover:text-ink">{t('footer.simulator')}</a></li>
+            <li><a href={LINKS.mentorGuide} className="hover:text-ink">{t('footer.mentorGuide')}</a></li>
           </ul>
         </div>
         <div>
-          <h4 className="text-sm font-semibold">Ma'lumot</h4>
+          <h4 className="text-sm font-semibold">{t('footer.info')}</h4>
           <ul className="mt-3 space-y-2 text-sm text-ink-mute">
-            <li><Link to="/biz-haqimizda" className="hover:text-ink">Biz haqimizda</Link></li>
-            <li><Link to="/kabinet" className="hover:text-ink">Shaxsiy kabinet</Link></li>
+            <li><Link to="/biz-haqimizda" className="hover:text-ink">{t('nav.about')}</Link></li>
+            <li><Link to="/kabinet" className="hover:text-ink">{t('footer.cabinet')}</Link></li>
             {BRAND.supportEmail && <li><a href={`mailto:${BRAND.supportEmail}`} className="hover:text-ink">{BRAND.supportEmail}</a></li>}
           </ul>
         </div>
@@ -112,7 +133,7 @@ function Footer() {
       <div className="border-t border-slate-200">
         <div className="container-lx flex flex-col gap-2 py-5 text-xs text-ink-mute sm:flex-row sm:justify-between">
           <span>© {new Date().getFullYear()} {BRAND.name} {BRAND.suffix}</span>
-          <span>Demo versiya: hisoblar va natijalar shu brauzerda saqlanadi</span>
+          <span>{t('footer.demo')}</span>
         </div>
       </div>
     </footer>

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Icon from '../components/Icon.jsx';
+import { useI18n } from '../i18n/index.jsx';
 
 export default function QuizLesson({ lesson, done, best, onComplete, busy }) {
+  const { t } = useI18n();
   const qs = lesson.questions;
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);   // { correct, percent, passed }
@@ -20,20 +22,20 @@ export default function QuizLesson({ lesson, done, best, onComplete, busy }) {
   return (
     <div>
       <div className="flex flex-wrap gap-x-6 gap-y-1 rounded-xl bg-slate-50 px-4 py-3 text-sm text-ink-soft">
-        <span><b className="text-ink">{qs.length}</b> ta savol</span>
-        <span>O'tish bali: <b className="text-ink">{lesson.passPercent}%</b></span>
-        <span>Urinishlar: <b className="text-ink">cheklanmagan</b></span>
-        {done && best != null && <span>Eng yaxshi natija: <b className="text-emerald-700">{best}%</b></span>}
+        <span><b className="text-ink">{t('quiz.questions', { n: qs.length })}</b></span>
+        <span>{t('quiz.pass')}: <b className="text-ink">{lesson.passPercent}%</b></span>
+        <span>{t('quiz.attempts')}: <b className="text-ink">{t('quiz.unlimited')}</b></span>
+        {done && best != null && <span>{t('quiz.best')}: <b className="text-emerald-700">{best}%</b></span>}
       </div>
 
       {result && (
         <div className={`mt-5 flex items-start gap-3 rounded-xl border p-4 ${result.passed ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
           <Icon name={result.passed ? 'checkCircle' : 'refresh'} className={`h-6 w-6 shrink-0 ${result.passed ? 'text-emerald-600' : 'text-amber-600'}`} />
           <div className="flex-1">
-            <div className="font-semibold">{result.passed ? 'Test topshirildi!' : "Bu safar o'tmadi"}</div>
-            <div className="text-sm text-ink-soft">{result.correct}/{qs.length} to'g'ri javob — {result.percent}%. {result.passed ? '' : `O'tish uchun kamida ${lesson.passPercent}% kerak. Xatolarni ko'rib chiqib, qayta urinib ko'ring.`}</div>
+            <div className="font-semibold">{result.passed ? t('quiz.passed') : t('quiz.failed')}</div>
+            <div className="text-sm text-ink-soft">{t('quiz.result', { c: result.correct, n: qs.length, p: result.percent })} {result.passed ? '' : t('quiz.needPass', { p: lesson.passPercent })}</div>
           </div>
-          {!result.passed && <button className="btn-secondary" onClick={retry}>Qayta urinish</button>}
+          {!result.passed && <button className="btn-secondary" onClick={retry}>{t('quiz.retry')}</button>}
         </div>
       )}
 
@@ -65,8 +67,8 @@ export default function QuizLesson({ lesson, done, best, onComplete, busy }) {
 
       {!result && (
         <div className="mt-8 flex items-center justify-end gap-4 border-t border-slate-100 pt-6">
-          <span className="text-sm text-ink-mute">{Object.keys(answers).length}/{qs.length} javob berildi</span>
-          <button className="btn-primary" disabled={!all || busy} onClick={submit}>Javoblarni tekshirish</button>
+          <span className="text-sm text-ink-mute">{t('quiz.answered', { a: Object.keys(answers).length, n: qs.length })}</span>
+          <button className="btn-primary" disabled={!all || busy} onClick={submit}>{t('quiz.check')}</button>
         </div>
       )}
     </div>

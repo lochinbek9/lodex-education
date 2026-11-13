@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from '../components/Icon.jsx';
+import { useI18n } from '../i18n/index.jsx';
 import { LINKS } from '../config.js';
+import { formatNumber } from '../utils.js';
 
 // Simulyator iframe ichida ochiladi (embed rejimi). Topshiriq bajarilganda simulyator
 // postMessage orqali natija yuboradi: { type: 'lodex-sim:result', field, ok, time, text }.
 export default function SimLesson({ lesson, done, best, onComplete }) {
+  const { t } = useI18n();
   const frame = useRef(null);
   const [last, setLast] = useState(null);
   const [hints, setHints] = useState(0);
@@ -28,17 +31,19 @@ export default function SimLesson({ lesson, done, best, onComplete }) {
     <div>
       <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
         <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-brand-800"><Icon name="robot" className="h-4 w-4" />Topshiriq</div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-brand-800"><Icon name="robot" className="h-4 w-4" />{t('sim.task')}</div>
           <p className="mt-1.5 text-[15px] leading-7 text-ink">{lesson.task}</p>
-          {done && best != null && <p className="mt-2 text-sm font-medium text-emerald-700">✓ Bajarilgan · eng yaxshi vaqt: {String(best).replace('.', ',')} s</p>}
+          {done && best != null && <p className="mt-2 text-sm font-medium text-emerald-700">{t('sim.doneBest', { t: formatNumber(best) })}</p>}
         </div>
         <div className="flex flex-col gap-2 lg:w-56">
           <button className="btn-secondary" onClick={() => setHints(h => Math.min(h + 1, lesson.hints.length))} disabled={hints >= lesson.hints.length}>
-            <Icon name="bulb" className="h-4 w-4" />{hints === 0 ? "Maslahat olish" : hints < lesson.hints.length ? 'Yana maslahat' : 'Maslahatlar tugadi'}
+            <Icon name="bulb" className="h-4 w-4" />{hints === 0 ? t('sim.hintFirst') : hints < lesson.hints.length ? t('sim.hintMore') : t('sim.hintNone')}
           </button>
-          <button className="btn-ghost" onClick={openFull}><Icon name="external" className="h-4 w-4" />Alohida oynada ochish</button>
+          <button className="btn-ghost" onClick={openFull}><Icon name="external" className="h-4 w-4" />{t('sim.openFull')}</button>
         </div>
       </div>
+
+      {t('sim.langNote') && <p className="mt-3 text-sm text-ink-mute">ⓘ {t('sim.langNote')}</p>}
 
       {hints > 0 && (
         <ol className="mt-4 space-y-2">
@@ -50,16 +55,14 @@ export default function SimLesson({ lesson, done, best, onComplete }) {
 
       {last && !last.ok && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {last.text} — dasturni o'zgartirib, qayta urinib ko'ring.
+          {last.text} — {t('sim.retry')}
         </div>
       )}
 
       <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-card">
-        <iframe ref={frame} src={src} title={`Simulyator: ${lesson.title}`} className="block h-[78vh] min-h-[560px] w-full" allow="clipboard-write" />
+        <iframe ref={frame} src={src} title={t('sim.frameTitle', { title: lesson.title })} className="block h-[78vh] min-h-[560px] w-full" allow="clipboard-write" />
       </div>
-      <p className="mt-3 text-xs text-ink-mute">
-        Topshiriq bajarilishi bilan natija avtomatik saqlanadi va keyingi dars ochiladi. Alohida oynada bajarsangiz ham natija shu sahifaga yetib keladi.
-      </p>
+      <p className="mt-3 text-xs text-ink-mute">{t('sim.footnote')}</p>
     </div>
   );
 }

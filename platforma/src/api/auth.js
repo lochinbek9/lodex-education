@@ -15,11 +15,11 @@ export async function register({ name, email, password, role }) {
   await delay();
   name = (name || '').trim();
   email = (email || '').trim().toLowerCase();
-  if (name.length < 2) throw new ApiError('Ismingizni kiriting (kamida 2 harf).', 'name');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ApiError("Email manzil noto'g'ri.", 'email');
-  if ((password || '').length < 8) throw new ApiError("Parol kamida 8 belgidan iborat bo'lishi kerak.", 'password');
+  if (name.length < 2) throw new ApiError('nameShort', 'name');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ApiError('emailInvalid', 'email');
+  if ((password || '').length < 8) throw new ApiError('passwordShort', 'password');
   const users = read('users', {});
-  if (users[email]) throw new ApiError("Bu email bilan hisob allaqachon mavjud. Kirish sahifasidan foydalaning.", 'email');
+  if (users[email]) throw new ApiError('emailTaken', 'email');
   const salt = randomId();
   const user = {
     id: randomId(), name, email, role: role === 'teacher' ? 'teacher' : 'student',
@@ -36,7 +36,7 @@ export async function login({ email, password }) {
   email = (email || '').trim().toLowerCase();
   const user = read('users', {})[email];
   if (!user || (await hashPassword(password || '', user.salt)) !== user.hash) {
-    throw new ApiError("Email yoki parol noto'g'ri.", 'password');
+    throw new ApiError('badCredentials', 'password');
   }
   write('session', { userId: user.id, email });
   return publicUser(user);
@@ -57,8 +57,8 @@ export async function updateProfile(userId, { name }) {
   await delay(150);
   const users = read('users', {});
   const u = Object.values(users).find(x => x.id === userId);
-  if (!u) throw new ApiError('Hisob topilmadi.');
-  if ((name || '').trim().length < 2) throw new ApiError('Ismingizni kiriting (kamida 2 harf).', 'name');
+  if (!u) throw new ApiError('notFound');
+  if ((name || '').trim().length < 2) throw new ApiError('nameShort', 'name');
   u.name = name.trim();
   write('users', users);
   return publicUser(u);

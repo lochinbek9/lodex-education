@@ -3,7 +3,8 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import Icon from '../components/Icon.jsx';
 import { ProgressBar, useTitle } from '../components/ui.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { courseLessons, findCourse, LESSON_TYPE } from '../data/courses.js';
+import { courseLessons, LESSON_TYPE } from '../data/courses.js';
+import { useI18n } from '../i18n/index.jsx';
 import { completeLesson, getCourseProgress } from '../api/progress.js';
 import TextLesson from '../lessons/TextLesson.jsx';
 import QuizLesson from '../lessons/QuizLesson.jsx';
@@ -41,6 +42,7 @@ function Sidebar({ course, lessons, progress, current, onNavigate }) {
 
 export default function Lesson() {
   const { slug, lessonId } = useParams();
+  const { t, findCourse } = useI18n();
   const course = findCourse(slug);
   const { user } = useAuth();
   const lessons = course ? courseLessons(course) : [];
@@ -89,11 +91,11 @@ export default function Lesson() {
               <Icon name="arrowLeft" className="h-4 w-4" />{course.title}
             </Link>
             <div className={`px-1 ${wide ? 'w-48' : 'mt-3'}`}>
-              <div className="mb-1.5 flex justify-between text-xs text-ink-mute"><span>{progress.done}/{progress.total} dars</span><span>{progress.percent}%</span></div>
+              <div className="mb-1.5 flex justify-between text-xs text-ink-mute"><span>{t('course.lessonsDone', { d: progress.done, t: progress.total })}</span><span>{progress.percent}%</span></div>
               <ProgressBar percent={progress.percent} />
             </div>
             <button className={`btn-secondary ${wide ? 'ml-auto' : 'mt-4 w-full lg:hidden'}`} onClick={() => setMenu(m => !m)}>
-              <Icon name="menu" className="h-4 w-4" />{menu ? 'Darslar ro\'yxatini yopish' : 'Darslar ro\'yxati'}
+              <Icon name="menu" className="h-4 w-4" />{menu ? t('lesson.listClose') : t('lesson.listOpen')}
             </button>
           </div>
           <div className={`mt-5 ${menu ? 'block' : 'hidden'} ${wide ? '' : 'lg:block'}`}>
@@ -103,25 +105,25 @@ export default function Lesson() {
       </aside>
 
       <section className="min-w-0">
-        <div className="text-sm text-ink-mute">{lesson.moduleTitle} · {idx + 1}/{lessons.length}-dars</div>
+        <div className="text-sm text-ink-mute">{lesson.moduleTitle} · {t('lesson.position', { i: idx + 1, n: lessons.length })}</div>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{lesson.title}</h1>
-          <span className="badge bg-slate-100 text-ink-soft"><Icon name={LESSON_TYPE[lesson.type].icon} className="h-3.5 w-3.5" />{LESSON_TYPE[lesson.type].label}</span>
-          {done && <span className="badge bg-emerald-50 text-emerald-700"><Icon name="check" className="h-3.5 w-3.5" />Bajarilgan</span>}
+          <span className="badge bg-slate-100 text-ink-soft"><Icon name={LESSON_TYPE[lesson.type].icon} className="h-3.5 w-3.5" />{t(`lesson.types.${lesson.type}`)}</span>
+          {done && <span className="badge bg-emerald-50 text-emerald-700"><Icon name="check" className="h-3.5 w-3.5" />{t('lesson.done')}</span>}
         </div>
 
         {justDone && (
           <div className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
             <Icon name="checkCircle" className="h-7 w-7 text-emerald-600" />
             <div className="flex-1">
-              <div className="font-semibold text-emerald-900">{finished && !next ? 'Kurs tugatildi! Tabriklaymiz!' : 'Dars bajarildi!'}</div>
+              <div className="font-semibold text-emerald-900">{finished && !next ? t('lesson.courseDone') : t('lesson.lessonDone')}</div>
               <div className="text-sm text-emerald-800">
-                {finished && !next ? 'Sertifikatingiz tayyor.' : next ? `Keyingi dars ochildi: «${next.title}»` : 'Natija saqlandi.'}
+                {finished && !next ? t('lesson.certReady') : next ? t('lesson.nextOpened', { title: next.title }) : t('lesson.saved')}
               </div>
             </div>
             {finished && !next
-              ? <Link to={`/sertifikat/${course.slug}`} className="btn-primary"><Icon name="award" className="h-4 w-4" />Sertifikat</Link>
-              : next && <Link to={`/kurslar/${course.slug}/dars/${next.id}`} className="btn-primary">Keyingi dars<Icon name="arrowRight" className="h-4 w-4" /></Link>}
+              ? <Link to={`/sertifikat/${course.slug}`} className="btn-primary"><Icon name="award" className="h-4 w-4" />{t('lesson.cert')}</Link>
+              : next && <Link to={`/kurslar/${course.slug}/dars/${next.id}`} className="btn-primary">{t('lesson.nextLesson')}<Icon name="arrowRight" className="h-4 w-4" /></Link>}
           </div>
         )}
 
@@ -130,11 +132,11 @@ export default function Lesson() {
         </div>
 
         <div className="mt-10 flex items-center justify-between gap-4 border-t border-slate-200 pt-6">
-          {prev ? <Link to={`/kurslar/${course.slug}/dars/${prev.id}`} className="btn-ghost"><Icon name="arrowLeft" className="h-4 w-4" /><span className="hidden sm:inline">{prev.title}</span><span className="sm:hidden">Oldingi</span></Link> : <span />}
+          {prev ? <Link to={`/kurslar/${course.slug}/dars/${prev.id}`} className="btn-ghost"><Icon name="arrowLeft" className="h-4 w-4" /><span className="hidden sm:inline">{prev.title}</span><span className="sm:hidden">{t('lesson.prev')}</span></Link> : <span />}
           {next && (nextOpen
-            ? <Link to={`/kurslar/${course.slug}/dars/${next.id}`} className="btn-secondary"><span className="hidden sm:inline">{next.title}</span><span className="sm:hidden">Keyingi</span><Icon name="arrowRight" className="h-4 w-4" /></Link>
-            : <span className="flex items-center gap-1.5 text-sm text-ink-mute"><Icon name="lock" className="h-4 w-4" />Keyingi dars shu darsdan keyin ochiladi</span>)}
-          {!next && finished && <Link to={`/sertifikat/${course.slug}`} className="btn-primary"><Icon name="award" className="h-4 w-4" />Sertifikat</Link>}
+            ? <Link to={`/kurslar/${course.slug}/dars/${next.id}`} className="btn-secondary"><span className="hidden sm:inline">{next.title}</span><span className="sm:hidden">{t('lesson.next')}</span><Icon name="arrowRight" className="h-4 w-4" /></Link>
+            : <span className="flex items-center gap-1.5 text-sm text-ink-mute"><Icon name="lock" className="h-4 w-4" />{t('lesson.lockedNext')}</span>)}
+          {!next && finished && <Link to={`/sertifikat/${course.slug}`} className="btn-primary"><Icon name="award" className="h-4 w-4" />{t('lesson.cert')}</Link>}
         </div>
       </section>
     </div>
