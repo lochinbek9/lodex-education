@@ -84,6 +84,14 @@
         <p>Har bir sinf uchun tayyor dars rejalari, qadam-baqadam amaliy qo'llanmalar, savollar, testlar, interaktiv o'yinlar va video namunalar. Sinfni tanlang va darsni boshlang.</p></div>
         <div class="bot" aria-hidden="true">🤖</div>
       </section>
+      <div class="res-banner">
+        <div class="rb-icon">📚</div>
+        <div class="rb-text">
+          <h3>Mentorlar va o'quvchilar uchun kutubxona</h3>
+          <p>Darslarni samarali tashkil etish uchun xalqaro va milliy metodik qo'llanmalar, sara kitoblar, video darslar hamda simulyatorlar to'plami.</p>
+        </div>
+        <a class="btn primary" href="#/resurslar">Resurslarni ko'rish →</a>
+      </div>
       <div class="sec">Sinflar</div>
       <div class="grid">${Q.list.map((s) => {
         const g = Q.grades[s.id];
@@ -231,9 +239,163 @@
     };
   }
 
+  function resources(initialCat) {
+    const resData = Q.resources || { categories: [], items: [] };
+    crumbs.innerHTML = `<a href="#/">Sinflar</a> › Resurslar &amp; Kitoblar`;
+    document.title = "Kutubxona & Resurslar — Roboqo'llanma";
+
+    let curCat = initialCat || "all";
+    let curGrade = "all";
+    let q = "";
+
+    const gradeList = [
+      { id: "all", label: "Barcha yoshlar" },
+      { id: "2–3-sinf", label: "2–3-sinf (WeDo / Scratch)" },
+      { id: "4–5-sinf", label: "4–5-sinf (Tinkercad / Bloklar)" },
+      { id: "6–7-sinf", label: "6–7-sinf (Arduino C++)" },
+      { id: "Barcha sinflar", label: "Umumiy / Mentorlar uchun" }
+    ];
+
+    app.innerHTML = `
+      <div class="res-head">
+        <h1>📚 Kutubxona va Metodik Resurslar</h1>
+        <p>Robototexnika to'garaklari va darslarini o'tish uchun eng sara rasmiy o'quv dasturlari, tavsiya etilgan kitoblar, o'zbekcha va xalqaro video darslar hamda virtual laboratoriyalar to'plami.</p>
+      </div>
+
+      <div class="res-controls">
+        <div class="res-search">
+          <input type="search" id="resSearchInput" placeholder="Mavzu, kitob, dastur yoki muallif bo'yicha qidirish..." aria-label="Resurslarni qidirish">
+        </div>
+
+        <div class="res-tabs" id="resCatTabs">
+          ${resData.categories.map((c) => `<button class="res-tab${c.id === curCat ? " active" : ""}" data-cat="${c.id}">${c.icon} ${esc(c.title)}</button>`).join("")}
+        </div>
+
+        <div class="res-grade-tabs" id="resGradeTabs">
+          <span class="res-grade-label">Sinf bo'yicha saralash:</span>
+          ${gradeList.map((g) => `<button class="res-grade-pill${g.id === curGrade ? " active" : ""}" data-grade="${g.id}">${esc(g.label)}</button>`).join("")}
+        </div>
+      </div>
+
+      <div class="res-grid" id="resGridEl"></div>
+    `;
+
+    const searchInput = document.getElementById("resSearchInput");
+    const gridEl = document.getElementById("resGridEl");
+
+    function renderList() {
+      const filtered = resData.items.filter((item) => {
+        const matchCat = curCat === "all" || item.cat === curCat;
+        const matchGrade = curGrade === "all" || item.grade.includes(curGrade) || (curGrade === "Barcha sinflar" && (item.grade.includes("Barcha") || item.grade.includes("Mentor")));
+        const s = q.toLowerCase();
+        const matchSearch = !s || (
+          item.title.toLowerCase().includes(s) ||
+          item.author.toLowerCase().includes(s) ||
+          item.desc.toLowerCase().includes(s) ||
+          item.type.toLowerCase().includes(s) ||
+          item.lang.toLowerCase().includes(s) ||
+          item.badge.toLowerCase().includes(s)
+        );
+        return matchCat && matchGrade && matchSearch;
+      });
+
+      if (!filtered.length) {
+        gridEl.innerHTML = `
+          <div class="res-empty">
+            <div style="font-size:42px;margin-bottom:8px">🔍</div>
+            <h3>Qidiruv bo'yicha hech narsa topilmadi</h3>
+            <p>Iltimos, boshqa kalit so'z kiritib ko'ring yoki filtrlarni tozalang.</p>
+            <button class="btn" id="resResetBtn" style="margin-top:12px">Filtrlarni tozalash</button>
+          </div>
+        `;
+        const resetBtn = document.getElementById("resResetBtn");
+        if (resetBtn) {
+          resetBtn.onclick = () => {
+            curCat = "all";
+            curGrade = "all";
+            q = "";
+            searchInput.value = "";
+            updateTabStates();
+            renderList();
+          };
+        }
+        return;
+      }
+
+      gridEl.innerHTML = filtered.map((item) => `
+        <article class="res-card">
+          <div>
+            <div class="res-top">
+              <span class="res-icon" aria-hidden="true">${item.icon || "📄"}</span>
+              <div>
+                <h2 class="res-title">${esc(item.title)}</h2>
+                <div class="res-author">${esc(item.author)} · <span>${esc(item.type)}</span></div>
+              </div>
+            </div>
+            <div class="res-tags">
+              <span class="res-tag grade">🎯 ${esc(item.grade)}</span>
+              <span class="res-tag lang">🌐 ${esc(item.lang)}</span>
+              <span class="res-tag badge">⭐ ${esc(item.badge)}</span>
+            </div>
+            <p class="res-desc">${esc(item.desc)}</p>
+          </div>
+          <a class="res-btn" href="${esc(item.link)}" target="_blank" rel="noopener noreferrer">
+            ${esc(item.btnText || "Manbaga o'tish ↗")}
+          </a>
+        </article>
+      `).join("");
+    }
+
+    function updateTabStates() {
+      document.querySelectorAll("#resCatTabs .res-tab").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.cat === curCat);
+      });
+      document.querySelectorAll("#resGradeTabs .res-grade-pill").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.grade === curGrade);
+      });
+    }
+
+    document.querySelectorAll("#resCatTabs .res-tab").forEach((btn) => {
+      btn.onclick = () => {
+        curCat = btn.dataset.cat;
+        updateTabStates();
+        renderList();
+      };
+    });
+
+    document.querySelectorAll("#resGradeTabs .res-grade-pill").forEach((btn) => {
+      btn.onclick = () => {
+        curGrade = btn.dataset.grade;
+        updateTabStates();
+        renderList();
+      };
+    });
+
+    searchInput.oninput = (e) => {
+      q = e.target.value.trim();
+      renderList();
+    };
+
+    renderList();
+  }
+
   function route() {
-    const p = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(Number);
-    if (p.length === 0) home(); else if (p.length === 1) grade(p[0]); else lesson(p[0], p[1]);
+    const hash = location.hash.replace(/^#\/?/, "");
+    const parts = hash.split("/").filter(Boolean);
+    const navlink = document.querySelector(".navlink");
+    if (navlink) navlink.classList.toggle("active", parts[0] === "resurslar");
+
+    if (parts.length === 0) {
+      home();
+    } else if (parts[0] === "resurslar") {
+      resources(parts[1]);
+    } else if (parts.length === 1 && !isNaN(Number(parts[0]))) {
+      grade(Number(parts[0]));
+    } else if (parts.length >= 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
+      lesson(Number(parts[0]), Number(parts[1]));
+    } else {
+      home();
+    }
     window.scrollTo(0, 0);
   }
   // Chop etishda yopiq javoblar ham chiqsin
